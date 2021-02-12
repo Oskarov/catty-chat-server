@@ -1,0 +1,31 @@
+{
+  "name": "catty-chat-server",
+  "version": "1.0.0",
+  "description": "server side of chat app on Node+GraphQL",
+  "main": "server.js",
+  "dependencies": {
+    "apollo-server": "^2.20.0",
+    "graphql": "^15.5.0",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Oskarov/catty-chat-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Oskarov/catty-chat-server/issues"
+  },
+  "homepage": "https://github.com/Oskarov/catty-chat-server#readme"
+}
