@@ -1,17 +1,33 @@
 const {User} = require('../models');
 const bcrypt = require('bcryptjs');
 const {validateRegisterInput, validateLoginInput} = require('../util/validators');
+const checkAuth = require('../util/checkAuth');
 const {UserInputError} = require('apollo-server');
+const jwt = require('jsonwebtoken')
+const {SECRET_KEY} = require('../config');
+const {Op} = require('sequelize');
+
+function generateToken(res){
+    return jwt.sign({
+        username: res.username,
+    }, SECRET_KEY, {expiresIn: '1h'});
+}
 
 module.exports = {
     Query: {
         getUsers: async () => {
+            const authUser = checkAuth(context);
             try {
-                const users = await User.findAll();
+                const users = await User.findAll({where: {username: {[Op.ne]: authUser.username}}});
                 return users;
             } catch (err) {
                 console.log(err);
             }
+        },
+        getUser: async (parent, args, context, info) => {
+            const authUser = checkAuth(context);
+            const user = await User.findOne({where: { username: authUser.username }});
+            return user;
         }
     },
     Mutation: {
@@ -40,7 +56,13 @@ module.exports = {
                 const user = await User.create({
                     username, email, password
                 });
-                return user;
+                const token = generateToken({username});
+
+                return {
+                    ...user.toJSON(),
+                    createdAt: user.createdAt.toISOString(),
+                    token
+                };
             } catch (err) {
                 console.log(err);
                 if (err.name == 'SequelizeUniqueConstraintError'){
@@ -50,6 +72,45 @@ module.exports = {
                 }
                 throw new UserInputError('Errors', {err});
             }
+        },
+        login: async (parent, args) => {
+            let {username, password} = args;
+            let {valid, errors} = validateLoginInput(username, password);
+            if (!valid) {
+                throw new UserInputError('Errors', {errors});
+            }
+            try {
+                const user = await User.findOne({
+                    where: {username}
+                });
+
+                if (!user){
+                    throw new UserInputError('Errors', {error: 'user not found'});
+                }
+
+                const correctPassword = await bcrypt.compare(password, user.password);
+
+                if (!correctPassword){
+                    throw new UserInputError('Errors', {error: 'not correct credentials'});
+                }
+
+                const token = generateToken({username});
+
+               return {
+                   ...user.toJSON(),
+                   createdAt: user.createdAt.toISOString(),
+                   token
+               };
+            } catch (err) {
+                console.log(err);
+                if (err.name == 'SequelizeUniqueConstraintError'){
+                    err.errors.forEach(e => (
+                        errors[e.path] = e.message
+                    ))
+                }
+                throw new UserInputError('Errors', {err});
+            }
+
         }
     }
 }
