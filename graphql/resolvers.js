@@ -26,8 +26,10 @@ module.exports = {
         },
         getUser: async (parent, args, context, info) => {
             const authUser = checkAuth(context);
+            const token = context.req.headers.authorization.split('Bearer ')[1];
             const user = await User.findOne({where: { username: authUser.username }});
-            return user;
+            console.log(user.toJSON())
+            return {...user.toJSON(), token}
         }
     },
     Mutation: {
