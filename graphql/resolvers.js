@@ -87,7 +87,7 @@ module.exports = {
                 });
 
                 if (!user){
-                    throw new UserInputError('Errors', {error: 'user not found'});
+                    throw new UserInputError('Errors', {error: 'not correct credentials'});
                 }
 
                 const correctPassword = await bcrypt.compare(password, user.password);
