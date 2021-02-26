@@ -1,4 +1,4 @@
-const {User} = require('../models');
+const {User, Message} = require('../models');
 const bcrypt = require('bcryptjs');
 const {validateRegisterInput, validateLoginInput} = require('../util/validators');
 const checkAuth = require('../util/checkAuth');
@@ -113,6 +113,24 @@ module.exports = {
                 throw new UserInputError('Errors', {err});
             }
 
+        },
+        sendMessage: async (parent, {to, content}, context) => {
+            try{
+                const authUser = checkAuth(context);
+                const recipient = await User.findOne({where: {username: to}});
+
+                if (!recipient){
+                    throw new UserInputError('User not found');
+                }
+
+                if (content.trim() === ''){
+                    throw new UserInputError('empty message');
+                }
+
+
+            }catch (err){
+                throw err;
+            }
         }
     }
 }
