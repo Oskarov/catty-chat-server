@@ -1,10 +1,10 @@
-const {User, Message} = require('../models');
+const {User} = require('../../models');
 const bcrypt = require('bcryptjs');
-const {validateRegisterInput, validateLoginInput} = require('../util/validators');
-const checkAuth = require('../util/checkAuth');
+const {validateRegisterInput, validateLoginInput} = require('../../util/validators');
+const checkAuth = require('../../util/checkAuth');
 const {UserInputError} = require('apollo-server');
 const jwt = require('jsonwebtoken')
-const {SECRET_KEY} = require('../config');
+const {SECRET_KEY} = require('../../config');
 const {Op} = require('sequelize');
 
 function generateToken(res){
@@ -98,11 +98,11 @@ module.exports = {
 
                 const token = generateToken({username});
 
-               return {
-                   ...user.toJSON(),
-                   createdAt: user.createdAt.toISOString(),
-                   token
-               };
+                return {
+                    ...user.toJSON(),
+                    createdAt: user.createdAt.toISOString(),
+                    token
+                };
             } catch (err) {
                 console.log(err);
                 if (err.name == 'SequelizeUniqueConstraintError'){
@@ -114,23 +114,5 @@ module.exports = {
             }
 
         },
-        sendMessage: async (parent, {to, content}, context) => {
-            try{
-                const authUser = checkAuth(context);
-                const recipient = await User.findOne({where: {username: to}});
-
-                if (!recipient){
-                    throw new UserInputError('User not found');
-                }
-
-                if (content.trim() === ''){
-                    throw new UserInputError('empty message');
-                }
-
-
-            }catch (err){
-                throw err;
-            }
-        }
     }
 }

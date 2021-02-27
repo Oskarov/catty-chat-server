@@ -18,6 +18,9 @@ module.exports = gql`
     type Query {
         getUsers: [User]!
         getUser: User!
+        getMessages(
+            from: String!
+        ): [Message]!
     }
     type Mutation {
         register(
