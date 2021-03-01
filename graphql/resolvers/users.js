@@ -15,7 +15,7 @@ function generateToken(res){
 
 module.exports = {
     Query: {
-        getUsers: async () => {
+        getUsers: async (parent, args, context, info) => {
             const authUser = checkAuth(context);
             try {
                 const users = await User.findAll({where: {username: {[Op.ne]: authUser.username}}});
