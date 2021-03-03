@@ -8,6 +8,12 @@ module.exports = {
           return date.toISOString();
       }
     },
+    User: {
+      createdAt: (parent) => {
+          const date = new Date(parent.createdAt);
+          return date.toISOString();
+      }
+    },
     Query: {
         ...userResolvers.Query,
         ...messageResolvers.Query,

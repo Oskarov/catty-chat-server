@@ -1,4 +1,4 @@
-const {User} = require('../../models');
+const {User, Message} = require('../../models');
 const bcrypt = require('bcryptjs');
 const {validateRegisterInput, validateLoginInput} = require('../../util/validators');
 const checkAuth = require('../../util/checkAuth');
@@ -18,7 +18,22 @@ module.exports = {
         getUsers: async (parent, args, context, info) => {
             const authUser = checkAuth(context);
             try {
-                const users = await User.findAll({where: {username: {[Op.ne]: authUser.username}}});
+                let users = await User.findAll({attributes: ['username', 'createdAt'], where: {username: {[Op.ne]: authUser.username}}});
+                const allUserMessages = await Message.findAll({
+                    where: {
+                        [Op.or]: [{from: authUser.username}, {to: authUser.username}]
+                    },
+                    order: [['createdAt', 'DESC']]
+                })
+
+                users = users.map( otherUser => {
+                    const latestMessage = allUserMessages.find(
+                        m => m.from === otherUser.username || m.to === otherUser.username
+                    )
+                    otherUser.latestMessage = latestMessage;
+                    return otherUser;
+                })
+
                 return users;
             } catch (err) {
                 console.log(err);
