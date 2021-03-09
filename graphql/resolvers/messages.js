@@ -1,12 +1,15 @@
 const {User, Message} = require('../../models');
 const checkAuth = require('../../util/checkAuth');
-const {UserInputError} = require('apollo-server');
+const {UserInputError, PubSub} = require('apollo-server');
 const {Op} = require('sequelize');
+
+const pubsub = new PubSub();
 
 module.exports = {
     Query: {
         getMessages: async (parent, {from}, context) => {
-            const authUser = checkAuth(context);
+            const authContext = checkAuth(context);
+            const authUser = authContext.user;
             const targetUser = await User.findOne({where: {username: from}});
 
             if (!targetUser) {
@@ -29,7 +32,9 @@ module.exports = {
     Mutation: {
         sendMessage: async (parent, {to, content}, context) => {
             try {
-                const authUser = checkAuth(context);
+                const authContext = checkAuth(context);
+                const authUser = authContext.user;
+                console.log(context);
                 const recipient = await User.findOne({where: {username: to}});
 
                 if (!recipient) {
@@ -44,16 +49,23 @@ module.exports = {
                     throw new UserInputError('empty message');
                 }
 
-                const messages = await Message.create({
+                const message = await Message.create({
                     from: authUser.username,
                     to,
                     content
                 })
 
-                return messages;
+                pubsub.publish('NEW_MESSAGE', {newMessage: message});
+
+                return message;
             } catch (err) {
                 throw err;
             }
+        }
+    },
+    Subscription: {
+        newMessage: {
+            subscribe: () => pubsub.asyncIterator(['NEW_MESSAGE'])
         }
     }
 }

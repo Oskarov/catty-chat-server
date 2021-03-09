@@ -38,5 +38,8 @@ module.exports = gql`
             to: String!
             content: String!
         ): Message!
+    },
+    type Subscription{
+        newMessage: Message!
     }
 `;

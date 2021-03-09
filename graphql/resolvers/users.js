@@ -16,7 +16,8 @@ function generateToken(res){
 module.exports = {
     Query: {
         getUsers: async (parent, args, context, info) => {
-            const authUser = checkAuth(context);
+            const authContext = checkAuth(context);
+            const authUser = authContext.user;
             try {
                 let users = await User.findAll({attributes: ['username', 'createdAt'], where: {username: {[Op.ne]: authUser.username}}});
                 const allUserMessages = await Message.findAll({
@@ -40,7 +41,8 @@ module.exports = {
             }
         },
         getUser: async (parent, args, context, info) => {
-            const authUser = checkAuth(context);
+            const authContext = checkAuth(context);
+            const authUser = authContext.user;
             const token = context.req.headers.authorization.split('Bearer ')[1];
             const user = await User.findOne({where: { username: authUser.username }});
             console.log(user.toJSON())
