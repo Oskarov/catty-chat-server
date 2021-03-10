@@ -1,9 +1,8 @@
 const {User, Message} = require('../../models');
 const checkAuth = require('../../util/checkAuth');
-const {UserInputError, PubSub} = require('apollo-server');
+const {UserInputError} = require('apollo-server');
 const {Op} = require('sequelize');
 
-const pubsub = new PubSub();
 
 module.exports = {
     Query: {
@@ -34,7 +33,6 @@ module.exports = {
             try {
                 const authContext = checkAuth(context);
                 const authUser = authContext.user;
-                console.log(context);
                 const recipient = await User.findOne({where: {username: to}});
 
                 if (!recipient) {
@@ -55,7 +53,7 @@ module.exports = {
                     content
                 })
 
-                pubsub.publish('NEW_MESSAGE', {newMessage: message});
+                context.pubsub.publish('NEW_MESSAGE', {newMessage: message});
 
                 return message;
             } catch (err) {
@@ -65,7 +63,11 @@ module.exports = {
     },
     Subscription: {
         newMessage: {
-            subscribe: () => pubsub.asyncIterator(['NEW_MESSAGE'])
+            subscribe: (_,__, context) => {
+                const authContext = checkAuth(context);
+                console.log(authContext);
+                return authContext.pubsub.asyncIterator(['NEW_MESSAGE'])
+            }
         }
     }
 }

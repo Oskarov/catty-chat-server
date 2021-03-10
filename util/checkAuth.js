@@ -5,24 +5,26 @@ const { SECRET_KEY } = require('../config');
 const pubsub = new PubSub();
 
 module.exports = (context) => {
-     const authHeader = context.req.headers.authorization;
-     let token;
-     if (authHeader){
-         token = authHeader.split('Bearer ')[1];
+
+     let bearerToken;
+     if (context.req && context.req.headers.authorization){
+         bearerToken = context.req.headers.authorization
          /*throw new AuthenticationError('Token must be in right format');*/
-     } else if (context.connection && context.connection.context.authorization){
-         token = context.connection.context.authorization;
+     } else if (context.connection && context.connection.context.Authorization){
+         bearerToken = context.connection.context.Authorization
      }
 
-     if (token){
+
+     if (bearerToken){
         try {
+            const token = bearerToken.split('Bearer ')[1];
             context.user = jwt.verify(token, SECRET_KEY);
             context.pubsub = pubsub;
-
             return context;
         } catch (e){
             throw new AuthenticationError('Invalid/Expired token');
         }
     }
+
     throw new AuthenticationError('Header must be provided');
 }
