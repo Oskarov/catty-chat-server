@@ -9,7 +9,6 @@ module.exports = (context) => {
      let bearerToken;
      if (context.req && context.req.headers.authorization){
          bearerToken = context.req.headers.authorization
-         /*throw new AuthenticationError('Token must be in right format');*/
      } else if (context.connection && context.connection.context.Authorization){
          bearerToken = context.connection.context.Authorization
      }

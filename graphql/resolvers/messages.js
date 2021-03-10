@@ -1,6 +1,6 @@
 const {User, Message} = require('../../models');
 const checkAuth = require('../../util/checkAuth');
-const {UserInputError} = require('apollo-server');
+const {UserInputError, withFilter} = require('apollo-server');
 const {Op} = require('sequelize');
 
 
@@ -63,11 +63,18 @@ module.exports = {
     },
     Subscription: {
         newMessage: {
-            subscribe: (_,__, context) => {
-                const authContext = checkAuth(context);
-                console.log(authContext);
-                return authContext.pubsub.asyncIterator(['NEW_MESSAGE'])
-            }
+            subscribe:
+                withFilter((_,__, context) => {
+                    const authContext = checkAuth(context);
+                    return authContext.pubsub.asyncIterator(['NEW_MESSAGE'])
+                }, ({newMessage}, _, context) => {
+                    const authContext = checkAuth(context);
+                    const authUser = authContext.user;
+                    if (newMessage.from === authUser.user.username || newMessage.to === authUser.user.username){
+                        return true;
+                    }
+                    return false;
+                })
         }
     }
 }
