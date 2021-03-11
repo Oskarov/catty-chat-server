@@ -70,7 +70,7 @@ module.exports = {
                 }, ({newMessage}, _, context) => {
                     const authContext = checkAuth(context);
                     const authUser = authContext.user;
-                    if (newMessage.from === authUser.user.username || newMessage.to === authUser.user.username){
+                    if (newMessage.from === authUser.username || newMessage.to === authUser.username){
                         return true;
                     }
                     return false;
